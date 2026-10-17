@@ -13,6 +13,9 @@ main :: proc() {
 		pos = {640,360}
 	}
 
+	asteroid := make_asteroid({300,200})
+
+
 	for !rl.WindowShouldClose() {
 		rl.BeginDrawing()
 
@@ -22,6 +25,7 @@ main :: proc() {
 
 		draw_player(&player)
 
+		draw_asteroid(&asteroid)
 		rl.EndDrawing()
 	}
 }
