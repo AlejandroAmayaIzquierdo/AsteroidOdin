@@ -9,23 +9,18 @@ main :: proc() {
 	rl.InitWindow(1280,720, "Asteroid")
 	defer rl.CloseWindow()
 
-	player := Player {
-		pos = {640,360}
-	}
-
-	asteroid := make_asteroid({300,200})
-
+	world := make_world({640,360})
 
 	for !rl.WindowShouldClose() {
 		rl.BeginDrawing()
 
 		rl.ClearBackground(rl.BLACK)
 
-		update_player(&player)
+		update_world(&world)
 
-		draw_player(&player)
+		draw_world(&world)
 
-		draw_asteroid(&asteroid)
+		// draw_asteroid(&asteroid)
 		rl.EndDrawing()
 	}
 }
