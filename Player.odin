@@ -5,14 +5,14 @@ import "core:math"
 import rl "vendor:raylib"
 
 PLAYER_SIZE :: 30
-PLAYER_ACELERATION :: 200
-PLAYER_DRAG_SPEED :: 100
-PLAYER_MAX_SPEED :: 350
+ACELERATION_POWER :: 200
+ACELERATION_DRAG :: 0.9
+ROT_SPEED :: 350
+MAX_SPEED :: 200
 
 Player :: struct {
 	pos: rl.Vector2,
-	speed: f32,
-	vel: rl.Vector2,
+	aceleration: rl.Vector2,
 	rot: f32,
 	vel_rot: f32,
 }
@@ -34,44 +34,50 @@ get_player_tri :: proc(player: ^Player) -> [3]rl.Vector2 {
 
 update_player :: proc(player: ^Player) {
 
+	angle : f32 = player.rot * (math.PI / 180.0) // Angulo en radianes
+  	player_direction := rl.Vector2 {math.cos(angle),math.sin(angle)}
+   	aceleration_mod := math.sqrt(math.pow(player.aceleration.x,2) + math.pow(player.aceleration.y,2))
+
 	// Movement
 	if rl.IsKeyDown(.W) {
-		if (player.speed < PLAYER_MAX_SPEED) {
-			player.speed += PLAYER_ACELERATION * rl.GetFrameTime()
+		if aceleration_mod < MAX_SPEED {
+			player.aceleration += player_direction * ACELERATION_POWER * rl.GetFrameTime()
+		} else {
+			player.aceleration += player_direction * rl.GetFrameTime()
 		}
-		angle : f32 = player.rot * (math.PI / 180.0) // Angulo en radianes
-		directionV := rl.Vector2 {math.cos(angle),math.sin(angle)}
-		player.vel = directionV * cast(f32)player.speed
 	} else {
-		player.speed -= PLAYER_DRAG_SPEED * rl.GetFrameTime()
-
-		if (player.speed < 0) {
-			player.speed = 0
+		if aceleration_mod > 0 {
+			player.aceleration -= player.aceleration * ACELERATION_DRAG * rl.GetFrameTime()
 		}
 	}
 
-	fmt.printfln("Player speed: %v",player.speed)
+
+	fmt.printfln("Aceleration: %v, Aceleration Mod: %f",player.aceleration, aceleration_mod)
+
+
+
+
 
 	// Rotation
 	if (rl.IsKeyDown(.A)) {
-		player.vel_rot = -PLAYER_MAX_SPEED
+		player.vel_rot = -ROT_SPEED
 	}
 	else if (rl.IsKeyDown(.D)) {
-		player.vel_rot = PLAYER_MAX_SPEED
+		player.vel_rot = ROT_SPEED
 	}else {
 		player.vel_rot = 0;
 	}
 
 	player.rot += player.vel_rot * rl.GetFrameTime()
 
+	player.pos += player.aceleration * rl.GetFrameTime()
 
-
-	player.pos += player.vel * rl.GetFrameTime()
+	//fmt.printfln("Player dir: %v, aceleration: %f",player_direction,player.aceleration)
 }
 
 
 draw_player :: proc (player: ^Player) {
 	triangles_player := get_player_tri(player)
-	rl.DrawCircleV(player.pos,2,rl.WHITE)
+	//rl.DrawCircleV(player.pos,2,rl.WHITE)
 	rl.DrawTriangleLines(triangles_player[0],triangles_player[1],triangles_player[2],rl.WHITE)
 }
