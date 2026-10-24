@@ -1,7 +1,5 @@
 package main
 
-import "core:math"
-import "core:fmt"
 import rl "vendor:raylib"
 
 
@@ -9,18 +7,17 @@ main :: proc() {
 	rl.InitWindow(1280,720, "Asteroid")
 	defer rl.CloseWindow()
 
-	world := make_world({640,360})
+	space := make_space_map({640,360})
 
 	for !rl.WindowShouldClose() {
 		rl.BeginDrawing()
 
 		rl.ClearBackground(rl.BLACK)
 
-		update_world(&world)
+		update_space(&space)
 
-		draw_world(&world)
+		draw_space(&space)
 
-		// draw_asteroid(&asteroid)
 		rl.EndDrawing()
 	}
 }
