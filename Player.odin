@@ -52,7 +52,7 @@ update_player :: proc(player: ^Player) {
 	}
 
 
-	fmt.printfln("Aceleration: %v, Aceleration Mod: %f",player.aceleration, aceleration_mod)
+	// fmt.printfln("Aceleration: %v, Aceleration Mod: %f",player.aceleration, aceleration_mod)
 
 
 
@@ -78,6 +78,6 @@ update_player :: proc(player: ^Player) {
 
 draw_player :: proc (player: ^Player) {
 	triangles_player := get_player_tri(player)
-	//rl.DrawCircleV(player.pos,2,rl.WHITE)
+	rl.DrawCircleV(player.pos,2,rl.WHITE)
 	rl.DrawTriangleLines(triangles_player[0],triangles_player[1],triangles_player[2],rl.WHITE)
 }
