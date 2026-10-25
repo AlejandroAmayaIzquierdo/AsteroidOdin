@@ -1,6 +1,5 @@
 package main
 
-import "core:fmt"
 import rl "vendor:raylib"
 
 Space :: struct {
@@ -12,8 +11,8 @@ make_space_map :: proc(player_init_pos: rl.Vector2, num_asteroid: int = 10) ->Sp
 	asteroids := [dynamic]Asteroid{}
 
 	append(&asteroids, make_asteroid({300,200}))
-	append(&asteroids, make_asteroid({500,600}))
-	append(&asteroids, make_asteroid({800,100}))
+
+	append(&asteroids, make_asteroid({500,300},10,20))
 
 	return Space {
 		player = Player {
@@ -23,6 +22,13 @@ make_space_map :: proc(player_init_pos: rl.Vector2, num_asteroid: int = 10) ->Sp
 	}
 }
 
+destroy_space :: proc(space: ^Space) {
+	delete(space.asteroids)
+	space.asteroids = nil
+
+	destroy_player(&space.player)
+}
+
 
 update_space :: proc(space: ^Space) {
 
@@ -30,14 +36,10 @@ update_space :: proc(space: ^Space) {
 
 	lines_player := get_player_lines(&space.player)
 
-
-
 	for &asteroid in space.asteroids {
 		update_asteroid(&asteroid)
 
 		poly_points := get_poly(&asteroid)
-		//defer delete(poly)
-
 
 		for i := 0 ; i < len(poly_points); i += 1 {
 			current_point := poly_points[i]
@@ -46,7 +48,7 @@ update_space :: proc(space: ^Space) {
 			for j in lines_player {
 				collision_point : rl.Vector2
 				if (rl.CheckCollisionLines(current_point,next_point,j[0],j[1],&collision_point)) {
-					rl.DrawCircleV(collision_point,5,rl.RED)
+					destroy_player(&space.player)
 				}
 			}
 		}

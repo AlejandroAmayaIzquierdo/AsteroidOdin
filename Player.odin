@@ -1,8 +1,9 @@
 package main
 
-import "core:fmt"
 import "core:math"
 import rl "vendor:raylib"
+
+INI_PLAYER_POS :: rl.Vector2{640,360}
 
 PLAYER_SIZE :: 30
 ACELERATION_POWER :: 200
@@ -15,6 +16,13 @@ Player :: struct {
 	aceleration: rl.Vector2,
 	rot: f32,
 	vel_rot: f32,
+}
+
+destroy_player :: proc(player: ^Player) {
+	player.pos = INI_PLAYER_POS
+	player.aceleration = {0,0}
+	player.rot = 0
+	player.vel_rot = 0
 }
 
 get_player_tri :: proc(player: ^Player) -> [3]rl.Vector2 {
