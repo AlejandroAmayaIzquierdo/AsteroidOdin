@@ -1,5 +1,6 @@
 package main
 
+import "core:fmt"
 import "core:math"
 import rl "vendor:raylib"
 
@@ -7,21 +8,39 @@ INI_PLAYER_POS :: rl.Vector2{640,360}
 
 PLAYER_SIZE :: 30
 ACELERATION_POWER :: 200
-ACELERATION_DRAG :: 0.9
+ACELERATION_DRAG :: 0.3
 ROT_SPEED :: 350
-MAX_SPEED :: 200
+MAX_SPEED :: 300
+
+
+PROYECTILE_SIZE :: 10
+MAX_PROYECTILES :: 10
+PROYECTILE_SPEED :: 500
+PROYECTILE_LIFE :: 800
 
 Player :: struct {
 	pos: rl.Vector2,
 	aceleration: rl.Vector2,
 	rot: f32,
 	vel_rot: f32,
+	proyectiles : [dynamic]Proyectile
+}
+
+Proyectile :: struct {
+	pos: rl.Vector2,
+	dir: rl.Vector2
 }
 
 destroy_player :: proc(player: ^Player) {
+	respawn_player(player)
+
+	delete(player.proyectiles)
+}
+
+respawn_player ::proc(player: ^Player) {
 	player.pos = INI_PLAYER_POS
 	player.aceleration = {0,0}
-	player.rot = 0
+	player.rot = -90
 	player.vel_rot = 0
 }
 
@@ -59,7 +78,7 @@ get_player_lines :: proc(player: ^Player) -> [3][2]rl.Vector2 {
 update_player :: proc(player: ^Player) {
 
 	angle : f32 = player.rot * (math.PI / 180.0) // Angulo en radianes
-  	player_direction := rl.Vector2 {math.cos(angle),math.sin(angle)}
+  	player_direction := rl.Vector2Normalize(rl.Vector2 {math.cos(angle),math.sin(angle)})
    	aceleration_mod := math.sqrt(math.pow(player.aceleration.x,2) + math.pow(player.aceleration.y,2))
 
 	// Movement
@@ -85,14 +104,34 @@ update_player :: proc(player: ^Player) {
 		player.vel_rot = 0;
 	}
 
-	player.rot += player.vel_rot * rl.GetFrameTime()
+	// Weapon
+	if rl.IsKeyPressed(.SPACE) && len(player.proyectiles) < MAX_PROYECTILES {
+		new_proyectile := Proyectile {
+			dir = player_direction,
+			pos = player.pos + player_direction * PLAYER_SIZE
+		}
+		append(&player.proyectiles, new_proyectile)
+	}
 
+	for &proyectile, index in player.proyectiles {
+
+		proyectile.pos += proyectile.dir * PROYECTILE_SPEED * rl.GetFrameTime()
+
+		if (rl.Vector2Distance(player.pos,proyectile.pos) > PROYECTILE_LIFE) {
+			ordered_remove(&player.proyectiles, index)
+		}
+	}
+
+	player.rot += player.vel_rot * rl.GetFrameTime()
 	player.pos += player.aceleration * rl.GetFrameTime()
 }
 
-
 draw_player :: proc (player: ^Player) {
 	triangles_player := get_player_tri(player)
-	rl.DrawCircleV(player.pos,2,rl.WHITE)
+
 	rl.DrawTriangleLines(triangles_player[0],triangles_player[1],triangles_player[2],rl.WHITE)
+
+	for &proyectile in player.proyectiles {
+		rl.DrawCircleV(proyectile.pos,2,rl.WHITE)
+	}
 }

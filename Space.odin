@@ -34,8 +34,15 @@ update_space :: proc(space: ^Space) {
 
 	update_player(&space.player)
 
-	lines_player := get_player_lines(&space.player)
+	// Check player collision with asteroids
+	if check_player_collisions(space) {
+		destroy_player(&space.player)
+	}
 
+}
+
+check_player_collisions :: proc(space: ^Space) -> bool {
+	lines_player := get_player_lines(&space.player)
 	for &asteroid in space.asteroids {
 		update_asteroid(&asteroid)
 
@@ -48,12 +55,12 @@ update_space :: proc(space: ^Space) {
 			for j in lines_player {
 				collision_point : rl.Vector2
 				if (rl.CheckCollisionLines(current_point,next_point,j[0],j[1],&collision_point)) {
-					destroy_player(&space.player)
+					return true;
 				}
 			}
 		}
 	}
-
+	return false;
 }
 
 draw_space :: proc(space: ^Space) {
