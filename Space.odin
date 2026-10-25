@@ -12,6 +12,8 @@ make_space_map :: proc(player_init_pos: rl.Vector2, num_asteroid: int = 10) ->Sp
 	asteroids := [dynamic]Asteroid{}
 
 	append(&asteroids, make_asteroid({300,200}))
+	append(&asteroids, make_asteroid({500,600}))
+	append(&asteroids, make_asteroid({800,100}))
 
 	return Space {
 		player = Player {
@@ -26,25 +28,28 @@ update_space :: proc(space: ^Space) {
 
 	update_player(&space.player)
 
+	lines_player := get_player_lines(&space.player)
+
+
+
 	for &asteroid in space.asteroids {
 		update_asteroid(&asteroid)
 
-		poly := get_poly(&asteroid)
-		defer delete(poly)
+		poly_points := get_poly(&asteroid)
+		//defer delete(poly)
 
 
-		point := space.player.pos
-		num_points := asteroid.num_of_points
+		for i := 0 ; i < len(poly_points); i += 1 {
+			current_point := poly_points[i]
+			next_point := i + 1 < len(poly_points) ? poly_points[i + 1] : poly_points[0]
 
-
-
-		if (rl.CheckCollisionPointPoly(point,raw_data(poly),num_points)) {
-			// fmt.println("Hay colision entre jugador y un asteroide")
-			asteroid.color = rl.RED
-		}else {
-			asteroid.color = rl.WHITE
+			for j in lines_player {
+				collision_point : rl.Vector2
+				if (rl.CheckCollisionLines(current_point,next_point,j[0],j[1],&collision_point)) {
+					rl.DrawCircleV(collision_point,5,rl.RED)
+				}
+			}
 		}
-
 	}
 
 }

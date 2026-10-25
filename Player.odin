@@ -32,6 +32,22 @@ get_player_tri :: proc(player: ^Player) -> [3]rl.Vector2 {
 	return points
 }
 
+get_player_lines :: proc(player: ^Player) -> [3][2]rl.Vector2 {
+	points := get_player_tri(player)
+
+	lines : [3][2]rl.Vector2
+
+	for i in 0..<3 {
+		current_point := points[i]
+
+		next_point := i + 1 < len(points) ? points[i + 1] : points[0]
+
+		lines[i] = [2]rl.Vector2 {current_point,next_point}
+	}
+
+	return lines;
+}
+
 update_player :: proc(player: ^Player) {
 
 	angle : f32 = player.rot * (math.PI / 180.0) // Angulo en radianes
@@ -51,13 +67,6 @@ update_player :: proc(player: ^Player) {
 		}
 	}
 
-
-	// fmt.printfln("Aceleration: %v, Aceleration Mod: %f",player.aceleration, aceleration_mod)
-
-
-
-
-
 	// Rotation
 	if (rl.IsKeyDown(.A)) {
 		player.vel_rot = -ROT_SPEED
@@ -71,8 +80,6 @@ update_player :: proc(player: ^Player) {
 	player.rot += player.vel_rot * rl.GetFrameTime()
 
 	player.pos += player.aceleration * rl.GetFrameTime()
-
-	//fmt.printfln("Player dir: %v, aceleration: %f",player_direction,player.aceleration)
 }
 
 

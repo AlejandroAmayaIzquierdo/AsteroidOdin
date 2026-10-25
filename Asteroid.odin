@@ -46,6 +46,7 @@ get_poly :: proc (asteroid: ^Asteroid) -> [dynamic]rl.Vector2 {
 	return points
 }
 
+
 update_asteroid :: proc (asteroid: ^Asteroid) {
 
 }
