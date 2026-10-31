@@ -16,7 +16,7 @@ MAX_SPEED :: 300
 PROYECTILE_SIZE :: 10
 MAX_PROYECTILES :: 10
 PROYECTILE_SPEED :: 500
-PROYECTILE_LIFE :: 800
+PROYECTILE_LIFE :: 2
 
 Player :: struct {
 	pos: rl.Vector2,
@@ -28,7 +28,8 @@ Player :: struct {
 
 Proyectile :: struct {
 	pos: rl.Vector2,
-	dir: rl.Vector2
+	dir: rl.Vector2,
+	dur: f32,
 }
 
 destroy_player :: proc(player: ^Player) {
@@ -108,7 +109,7 @@ update_player :: proc(player: ^Player) {
 	if rl.IsKeyPressed(.SPACE) && len(player.proyectiles) < MAX_PROYECTILES {
 		new_proyectile := Proyectile {
 			dir = player_direction,
-			pos = player.pos + player_direction * PLAYER_SIZE
+			pos = player.pos + player_direction * PLAYER_SIZE,
 		}
 		append(&player.proyectiles, new_proyectile)
 	}
@@ -117,13 +118,22 @@ update_player :: proc(player: ^Player) {
 
 		proyectile.pos += proyectile.dir * PROYECTILE_SPEED * rl.GetFrameTime()
 
-		if (rl.Vector2Distance(player.pos,proyectile.pos) > PROYECTILE_LIFE) {
+		handle_out_of_bound(&proyectile.pos)
+
+
+		proyectile.dur += rl.GetFrameTime()
+
+		if (proyectile.dur >= PROYECTILE_LIFE) {
 			ordered_remove(&player.proyectiles, index)
 		}
 	}
 
 	player.rot += player.vel_rot * rl.GetFrameTime()
 	player.pos += player.aceleration * rl.GetFrameTime()
+
+
+	handle_out_of_bound(&player.pos)
+
 }
 
 draw_player :: proc (player: ^Player) {
