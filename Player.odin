@@ -18,12 +18,17 @@ MAX_PROYECTILES :: 10
 PROYECTILE_SPEED :: 500
 PROYECTILE_LIFE :: 2
 
+PLAYER_DEFAULT_LIFE :: 3
+PLAYER_INVULNERABILITY_TIME :: 2
+
 Player :: struct {
 	pos: rl.Vector2,
 	aceleration: rl.Vector2,
 	rot: f32,
 	vel_rot: f32,
-	proyectiles : [dynamic]Proyectile
+	proyectiles : [dynamic]Proyectile,
+	life : u8,
+	invulnerability : f32
 }
 
 Proyectile :: struct {
@@ -33,9 +38,10 @@ Proyectile :: struct {
 }
 
 destroy_player :: proc(player: ^Player) {
-	respawn_player(player)
-
 	delete(player.proyectiles)
+	player.proyectiles = nil
+	player.life = 0
+	player.invulnerability = 0
 }
 
 respawn_player ::proc(player: ^Player) {
@@ -43,6 +49,13 @@ respawn_player ::proc(player: ^Player) {
 	player.aceleration = {0,0}
 	player.rot = -90
 	player.vel_rot = 0
+
+	player.invulnerability = PLAYER_INVULNERABILITY_TIME
+
+	if (player.life > 0) {
+		player.life -= 1
+	}
+
 }
 
 get_player_tri :: proc(player: ^Player) -> [3]rl.Vector2 {
@@ -77,6 +90,9 @@ get_player_lines :: proc(player: ^Player) -> [3][2]rl.Vector2 {
 }
 
 update_player :: proc(player: ^Player) {
+	if player == nil || player.life == 0 {
+		return
+	}
 
 	angle : f32 = player.rot * (math.PI / 180.0) // Angulo en radianes
   	player_direction := rl.Vector2Normalize(rl.Vector2 {math.cos(angle),math.sin(angle)})
@@ -134,12 +150,21 @@ update_player :: proc(player: ^Player) {
 
 	handle_out_of_bound(&player.pos)
 
+	if (player.invulnerability > 0) {
+		player.invulnerability -= rl.GetFrameTime()
+	}
 }
 
 draw_player :: proc (player: ^Player) {
+	if player == nil || player.life == 0 {
+		return
+	}
+
 	triangles_player := get_player_tri(player)
 
-	rl.DrawTriangleLines(triangles_player[0],triangles_player[1],triangles_player[2],rl.WHITE)
+	if int(player.invulnerability * 10) % 4 == 0 {
+		rl.DrawTriangleLines(triangles_player[0],triangles_player[1],triangles_player[2],rl.WHITE)
+	}
 
 	for &proyectile in player.proyectiles {
 		rl.DrawCircleV(proyectile.pos,2,rl.WHITE)

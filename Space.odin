@@ -13,18 +13,16 @@ Space :: struct {
 make_space_map :: proc(player_init_pos: rl.Vector2, num_asteroid: int = 5) ->Space {
 	asteroids := [dynamic]Asteroid{}
 
-
 	for  i in 0..<num_asteroid {
 		asteroid_init_pos : rl.Vector2 = {rand.float32_range(0,WINDOW_HEIGHT),rand.float32_range(0,WINDOW_WIDTH/2)}
-		append(&asteroids, make_asteroid(asteroid_init_pos))
-		//append(&asteroids, make_asteroid({500,300},10,20))
+		append(&asteroids, make_leveled_asteroid(asteroid_init_pos,3))
 	}
-
-
 
 	return Space {
 		player = Player {
 			pos = player_init_pos,
+			life = PLAYER_DEFAULT_LIFE,
+			invulnerability = PLAYER_INVULNERABILITY_TIME
 		},
 		asteroids = asteroids
 	}
@@ -42,17 +40,43 @@ update_space :: proc(space: ^Space) {
 
 	update_player(&space.player)
 
+	for &asteroid,i in space.asteroids {
+		update_asteroid(&asteroid)
+	}
+
 	// Check player collision with asteroids
 	if check_player_collisions(space) {
-		destroy_player(&space.player)
+		if space.player.life == 0 {
+			destroy_player(&space.player)
+			return
+		}
+		respawn_player(&space.player)
 	}
 
 	// Check proyectiles collisions with asteroids
 	for &asteroid,i in space.asteroids {
+
+		if (&space.player == nil) {
+			continue
+		}
+
+		if &space.player.proyectiles == nil {
+			continue
+		}
+
 		poly : [NUM_OF_POINTS]rl.Vector2 = get_poly(&asteroid)
+
 		for &proyectile,j in space.player.proyectiles {
+
 			if rl.CheckCollisionPointPoly(proyectile.pos,raw_data(poly[:NUM_OF_POINTS]),NUM_OF_POINTS) {
+
+				if (asteroid.level > 1) {
+					append(&space.asteroids, make_leveled_asteroid(asteroid.pos,asteroid.level - 1))
+					append(&space.asteroids, make_leveled_asteroid(asteroid.pos,asteroid.level - 1))
+				}
+
 				ordered_remove(&space.asteroids,i)
+
 				ordered_remove(&space.player.proyectiles,j)
 			}
 		}
@@ -70,10 +94,17 @@ draw_space :: proc(space: ^Space) {
 
 
 check_player_collisions :: proc(space: ^Space) -> bool {
+
+	if (&space.player == nil) {
+		return false
+	}
+
+	if space.player.invulnerability > 0 {
+		return false
+	}
+
 	lines_player := get_player_lines(&space.player)
 	for &asteroid in space.asteroids {
-		update_asteroid(&asteroid)
-
 		poly_points := get_poly(&asteroid)
 
 		for i := 0 ; i < len(poly_points); i += 1 {

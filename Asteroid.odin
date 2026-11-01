@@ -6,17 +6,36 @@ import rand "core:math/rand"
 import time "core:time"
 
 NUM_OF_POINTS :: 10
-ASTEROID_SPEED :: 100
+ASTEROID_BASE_SPEED :: 100
+
+
 
 Asteroid :: struct {
 	pos: rl.Vector2,
 	dir: rl.Vector2,
-	min_radius: int,
-	max_radius: int,
+	min_radius: u8,
+	max_radius: u8,
 	seed: i64,
+	level: u8
 }
 
-make_asteroid :: proc(pos: rl.Vector2, min_radius := 20, max_radius := 50) ->
+make_leveled_asteroid :: proc (pos: rl.Vector2,level: u8) -> Asteroid {
+	asteroid : Asteroid
+	switch {
+	case level >= 3:
+		asteroid = make_asteroid(pos)
+	case level == 2:
+		asteroid = make_asteroid(pos,10,30)
+	case level <= 1:
+		asteroid = make_asteroid(pos,10,15)
+	}
+
+	asteroid.level = level
+
+	return asteroid
+}
+
+make_asteroid :: proc(pos: rl.Vector2, min_radius : u8 = 20, max_radius : u8 = 60) ->
 Asteroid {
 	new_asteroid := Asteroid {
 		pos = pos,
@@ -44,10 +63,8 @@ get_poly :: proc (asteroid: ^Asteroid) -> [NUM_OF_POINTS]rl.Vector2 {
 		direction_point := rl.Vector2 {math.cos(angle),math.sin(angle)}
 
 		if index < NUM_OF_POINTS {
-			points[index] = asteroid.pos + direction_point * cast(f32)rand.int_range(asteroid.min_radius,asteroid.max_radius)
+			points[index] = asteroid.pos + direction_point * cast(f32)rand.int_range(int(asteroid.min_radius),int(asteroid.max_radius))
 		}
-
-
 		rot += rot_between_points
 
 		index += 1
@@ -55,9 +72,23 @@ get_poly :: proc (asteroid: ^Asteroid) -> [NUM_OF_POINTS]rl.Vector2 {
 	return points
 }
 
+get_asteroid_level_speed :: proc (level: u8) -> u16 {
+	speed: u16
+	switch {
+	case level >= 3:
+		speed = ASTEROID_BASE_SPEED
+	case level == 2:
+		speed = ASTEROID_BASE_SPEED * 2
+	case level <= 1:
+		speed = ASTEROID_BASE_SPEED * 3
+	}
+	return speed
+}
+
 
 update_asteroid :: proc (asteroid: ^Asteroid) {
-	asteroid.pos += rl.Vector2Normalize(asteroid.dir) * ASTEROID_SPEED * rl.GetFrameTime()
+	level_speed : f32 = f32(get_asteroid_level_speed(asteroid.level))
+	asteroid.pos += rl.Vector2Normalize(asteroid.dir) * level_speed * rl.GetFrameTime()
 	handle_out_of_bound(&asteroid.pos)
 }
 
