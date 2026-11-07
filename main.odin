@@ -11,6 +11,10 @@ WINDOW_NAME :: "Asteroid"
 TITLE_FONT :: 100
 SUB_TEXT_FONT :: 30
 
+LIFE_STOCK_INIT_X_POS :: 28
+LIFE_STOCK_SPACE_BETWEEN :: 25
+LIFE_STOCK_SIZE :: 20
+
 GAME_STATES :: enum {
 	MENU,
 	GAMEPLAY
@@ -36,6 +40,11 @@ main :: proc() {
 	play_game_width := rl.MeasureText(play_game_text,SUB_TEXT_FONT)
 	play_game_rec : rl.Rectangle = {WINDOW_WIDTH / 2 - (f32(play_game_width) / 2),WINDOW_HEIGHT - 200,f32(play_game_width),SUB_TEXT_FONT}
 
+
+	// Game over text
+	game_over_text : cstring = "GAME OVER"
+	game_over_width := rl.MeasureText(game_over_text, SUB_TEXT_FONT)
+
 	for !rl.WindowShouldClose() {
 
 		// Update
@@ -43,10 +52,7 @@ main :: proc() {
 		case .MENU:
 			mouse_pos := rl.GetMousePosition()
 
-
-
 			if (rl.CheckCollisionPointRec(mouse_pos,play_game_rec)) {
-
 				rl.SetMouseCursor(.POINTING_HAND)
 				if (rl.IsMouseButtonPressed(.LEFT)) {
 					current_state = .GAMEPLAY
@@ -72,20 +78,36 @@ main :: proc() {
 		rl.BeginDrawing()
 
 		rl.ClearBackground(rl.BLACK)
-		#partial switch current_state {
+		switch current_state {
 		case.MENU:
 			rl.DrawText(title_game_text, i32(title_game_rec.x),i32(title_game_rec.y),TITLE_FONT,rl.WHITE)
 
 			rl.DrawText(play_game_text, i32(play_game_rec.x),i32(play_game_rec.y),SUB_TEXT_FONT,rl.WHITE)
+		case.GAMEPLAY:
+			if space.player.life == 0 {
+				rl.DrawText("GAME OVER",WINDOW_WIDTH / 2 - (i32(game_over_width) / 2),WINDOW_HEIGHT / 2 - (SUB_TEXT_FONT / 2),SUB_TEXT_FONT,rl.WHITE)
+			}
+
+			if !space.demo {
+				score_text : cstring = fmt.ctprint(space.score)
+				rl.DrawText(score_text,20,20,30,rl.WHITE)
+
+				life_stock_pos_x : f32 = LIFE_STOCK_INIT_X_POS
+				for i in 0..<space.player.life {
+
+					tri_points := get_tri({life_stock_pos_x,80},-90,LIFE_STOCK_SIZE)
+					rl.DrawTriangleLines(tri_points[0],tri_points[1],tri_points[2],rl.WHITE)
+
+					life_stock_pos_x += LIFE_STOCK_SPACE_BETWEEN
+				}
+			}
 		}
 
 		if debug {
-			rl.DrawFPS(20,20)
+			rl.DrawFPS(20,WINDOW_HEIGHT - 40)
 		}
 
 		draw_space(&space)
-
-
 
 		rl.EndDrawing()
 	}

@@ -1,6 +1,5 @@
 package main
 
-import "core:fmt"
 import "core:math"
 import rl "vendor:raylib"
 
@@ -9,7 +8,7 @@ INI_PLAYER_POS :: rl.Vector2{640,360}
 PLAYER_SIZE :: 30
 ACELERATION_POWER :: 200
 ACELERATION_DRAG :: 0.3
-ROT_SPEED :: 350
+ROT_SPEED :: 300
 MAX_SPEED :: 300
 
 
@@ -19,7 +18,7 @@ PROYECTILE_SPEED :: 500
 PROYECTILE_LIFE :: 2
 
 PLAYER_DEFAULT_LIFE :: 3
-PLAYER_INVULNERABILITY_TIME :: 2
+PLAYER_INVULNERABILITY_TIME :: 3
 
 Player :: struct {
 	pos: rl.Vector2,
@@ -58,16 +57,20 @@ respawn_player ::proc(player: ^Player) {
 }
 
 get_player_tri :: proc(player: ^Player) -> [3]rl.Vector2 {
+	return get_tri(player.pos,player.rot, PLAYER_SIZE)
+}
+
+get_tri :: proc(pos: rl.Vector2,rot: f32, size: f32 = PLAYER_SIZE) -> [3]rl.Vector2 {
 	points := [3]rl.Vector2{}
 
 	angles := [3]f32{0,150,210}
 
 	for i in 0..<3 {
-		current_point_rot := player.rot + angles[i]
+		current_point_rot := rot + angles[i]
 		angle : f32 = current_point_rot * (math.PI / 180.0) // Angulo en radianes
 
 		direction_point := rl.Vector2 {math.cos(angle), math.sin(angle)}
-		points[i] = player.pos + direction_point * PLAYER_SIZE
+		points[i] = pos + direction_point * size
 	}
 	return points
 }
@@ -98,7 +101,7 @@ update_player :: proc(player: ^Player) {
    	aceleration_mod := math.sqrt(math.pow(player.aceleration.x,2) + math.pow(player.aceleration.y,2))
 
 	// Movement
-	if rl.IsKeyDown(.W) {
+	if rl.IsKeyDown(.W) || rl.IsKeyDown(.UP) {
 		if aceleration_mod < MAX_SPEED {
 			player.aceleration += player_direction * ACELERATION_POWER * rl.GetFrameTime()
 		} else {
@@ -111,10 +114,10 @@ update_player :: proc(player: ^Player) {
 	}
 
 	// Rotation
-	if (rl.IsKeyDown(.A)) {
+	if rl.IsKeyDown(.A) || rl.IsKeyDown(.LEFT) {
 		player.vel_rot = -ROT_SPEED
 	}
-	else if (rl.IsKeyDown(.D)) {
+	else if rl.IsKeyDown(.D) || rl.IsKeyDown(.RIGHT) {
 		player.vel_rot = ROT_SPEED
 	}else {
 		player.vel_rot = 0;

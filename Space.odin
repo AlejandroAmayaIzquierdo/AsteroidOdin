@@ -1,5 +1,6 @@
 package main
 
+import "core:fmt"
 import "core:math/rand"
 import rl "vendor:raylib"
 
@@ -8,7 +9,9 @@ SPACE_EXTRA_LIMIT :: 40
 Space :: struct {
 	player: Player,
 	asteroids: [dynamic]Asteroid,
-	demo: bool
+	demo: bool,
+	score: int,
+	last_asteroids: int
 }
 
 make_space_map :: proc(player_init_pos: rl.Vector2, num_asteroid: int = 5) ->Space {
@@ -26,7 +29,9 @@ make_space_map :: proc(player_init_pos: rl.Vector2, num_asteroid: int = 5) ->Spa
 			invulnerability = PLAYER_INVULNERABILITY_TIME
 		},
 		asteroids = asteroids,
-		demo = false
+		demo = false,
+		score = 0,
+		last_asteroids = num_asteroid
 	}
 }
 
@@ -39,9 +44,22 @@ make_noplayer_map :: proc(num_asteroid: int = 10) -> Space {
 	return space
 }
 
+respawn_asteroids :: proc(space: ^Space, num_asteroid: int = 5) {
+	asteroids := [dynamic]Asteroid{}
+
+	for  i in 0..<num_asteroid {
+		asteroid_init_pos : rl.Vector2 = {rand.float32_range(0,WINDOW_HEIGHT),rand.float32_range(0,WINDOW_WIDTH/2)}
+		append(&asteroids, make_leveled_asteroid(asteroid_init_pos,3))
+	}
+
+	space.asteroids = asteroids
+	space.last_asteroids = num_asteroid
+}
+
 destroy_space :: proc(space: ^Space) {
 	delete(space.asteroids)
 	space.asteroids = nil
+	space.score = 0
 
 	destroy_player(&space.player)
 }
@@ -79,7 +97,17 @@ update_space :: proc(space: ^Space) {
 
 		for &proyectile,j in space.player.proyectiles {
 
+			// Asteroid destroy
 			if rl.CheckCollisionPointPoly(proyectile.pos,raw_data(poly[:NUM_OF_POINTS]),NUM_OF_POINTS) {
+
+				switch {
+				case asteroid.level >= 3:
+					space.score += 10
+				case asteroid.level == 2:
+					space.score += 50
+				case asteroid.level <= 1:
+					space.score += 100
+				}
 
 				if (asteroid.level > 1) {
 					append(&space.asteroids, make_leveled_asteroid(asteroid.pos,asteroid.level - 1))
@@ -91,6 +119,10 @@ update_space :: proc(space: ^Space) {
 				ordered_remove(&space.player.proyectiles,j)
 			}
 		}
+	}
+
+	if len(space.asteroids) == 0 {
+		respawn_asteroids(space,space.last_asteroids + 1)
 	}
 
 }
