@@ -3,11 +3,12 @@ package main
 import "core:math/rand"
 import rl "vendor:raylib"
 
-SPACE_EXTRA_LIMIT :: 30
+SPACE_EXTRA_LIMIT :: 40
 
 Space :: struct {
 	player: Player,
-	asteroids: [dynamic]Asteroid
+	asteroids: [dynamic]Asteroid,
+	demo: bool
 }
 
 make_space_map :: proc(player_init_pos: rl.Vector2, num_asteroid: int = 5) ->Space {
@@ -24,8 +25,18 @@ make_space_map :: proc(player_init_pos: rl.Vector2, num_asteroid: int = 5) ->Spa
 			life = PLAYER_DEFAULT_LIFE,
 			invulnerability = PLAYER_INVULNERABILITY_TIME
 		},
-		asteroids = asteroids
+		asteroids = asteroids,
+		demo = false
 	}
+}
+
+make_noplayer_map :: proc(num_asteroid: int = 10) -> Space {
+	space := make_space_map({0,0},num_asteroid)
+	space.demo = true
+
+	destroy_player(&space.player)
+
+	return space
 }
 
 destroy_space :: proc(space: ^Space) {

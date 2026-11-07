@@ -35,14 +35,13 @@ make_leveled_asteroid :: proc (pos: rl.Vector2,level: u8) -> Asteroid {
 	return asteroid
 }
 
-make_asteroid :: proc(pos: rl.Vector2, min_radius : u8 = 20, max_radius : u8 = 60) ->
-Asteroid {
+make_asteroid :: proc(pos: rl.Vector2, min_radius : u8 = 20, max_radius : u8 = 60) -> Asteroid {
 	new_asteroid := Asteroid {
 		pos = pos,
 		min_radius = min_radius,
 		max_radius = max_radius,
 		seed = time.now()._nsec,
-		dir = {rand.float32_range(0,1),rand.float32_range(0,1)}
+		dir = {rand.float32_range(-1,1),rand.float32_range(-1,1)}
 	}
 	return new_asteroid;
 }

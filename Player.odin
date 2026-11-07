@@ -55,7 +55,6 @@ respawn_player ::proc(player: ^Player) {
 	if (player.life > 0) {
 		player.life -= 1
 	}
-
 }
 
 get_player_tri :: proc(player: ^Player) -> [3]rl.Vector2 {
