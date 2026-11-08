@@ -43,7 +43,11 @@ main :: proc() {
 
 	// Game over text
 	game_over_text : cstring = "GAME OVER"
-	game_over_width := rl.MeasureText(game_over_text, SUB_TEXT_FONT)
+	game_over_width := rl.MeasureText(game_over_text, TITLE_FONT)
+
+	// Restart button text
+	restart_text : cstring = "Pres 'R' to restart"
+	restart_width := rl.MeasureText(restart_text, SUB_TEXT_FONT)
 
 	for !rl.WindowShouldClose() {
 
@@ -57,13 +61,16 @@ main :: proc() {
 				if (rl.IsMouseButtonPressed(.LEFT)) {
 					current_state = .GAMEPLAY
 				}
-
 			}else {
 				rl.SetMouseCursor(.DEFAULT)
 			}
 		case.GAMEPLAY:
 			if space.demo {
 				rl.SetMouseCursor(.DEFAULT)
+				space = make_space_map(INI_PLAYER_POS)
+			}
+
+			if space.player.life == 0 && rl.IsKeyPressed(.R) {
 				space = make_space_map(INI_PLAYER_POS)
 			}
 		}
@@ -85,7 +92,9 @@ main :: proc() {
 			rl.DrawText(play_game_text, i32(play_game_rec.x),i32(play_game_rec.y),SUB_TEXT_FONT,rl.WHITE)
 		case.GAMEPLAY:
 			if space.player.life == 0 {
-				rl.DrawText("GAME OVER",WINDOW_WIDTH / 2 - (i32(game_over_width) / 2),WINDOW_HEIGHT / 2 - (SUB_TEXT_FONT / 2),SUB_TEXT_FONT,rl.WHITE)
+				rl.DrawText(game_over_text,WINDOW_WIDTH / 2 - (i32(game_over_width) / 2),WINDOW_HEIGHT / 2 - (TITLE_FONT / 2),TITLE_FONT,rl.WHITE)
+
+				rl.DrawText(restart_text, WINDOW_WIDTH / 2 - (i32(restart_width) / 2),WINDOW_HEIGHT / 2 - (TITLE_FONT / 2) + 200,SUB_TEXT_FONT,rl.WHITE)
 			}
 
 			if !space.demo {
@@ -94,7 +103,6 @@ main :: proc() {
 
 				life_stock_pos_x : f32 = LIFE_STOCK_INIT_X_POS
 				for i in 0..<space.player.life {
-
 					tri_points := get_tri({life_stock_pos_x,80},-90,LIFE_STOCK_SIZE)
 					rl.DrawTriangleLines(tri_points[0],tri_points[1],tri_points[2],rl.WHITE)
 

@@ -14,7 +14,7 @@ Space :: struct {
 	last_asteroids: int
 }
 
-make_space_map :: proc(player_init_pos: rl.Vector2, num_asteroid: int = 5) ->Space {
+make_space_map :: proc(player_init_pos: rl.Vector2, num_asteroid: int = 3) ->Space {
 	asteroids := [dynamic]Asteroid{}
 
 	for  i in 0..<num_asteroid {
@@ -26,7 +26,8 @@ make_space_map :: proc(player_init_pos: rl.Vector2, num_asteroid: int = 5) ->Spa
 		player = Player {
 			pos = player_init_pos,
 			life = PLAYER_DEFAULT_LIFE,
-			invulnerability = PLAYER_INVULNERABILITY_TIME
+			invulnerability = PLAYER_INVULNERABILITY_TIME,
+			rot = -90
 		},
 		asteroids = asteroids,
 		demo = false,
