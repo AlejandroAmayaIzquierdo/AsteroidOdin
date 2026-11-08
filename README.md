@@ -1,5 +1,9 @@
 # AsteroidOdin
 
+<img width="1275" height="715" alt="image" src="https://github.com/user-attachments/assets/677f9e5c-263b-414a-b9b7-cae81b0714eb" />
+<br/>
+<br/>
+
 > [!CAUTION]
 > Don't be a proxy meat.
 
