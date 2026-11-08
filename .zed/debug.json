@@ -9,7 +9,7 @@
     "stopAtBeginningOfMainSubprogram": false,
     "build": {
       "command": "odin",
-      "args": ["build", ".", "-debug", "-o:none", "-out:debug_build"],
+      "args": ["build", "./src", "-debug", "-o:none", "-out:debug_build"],
       "cwd": "$ZED_WORKTREE_ROOT"
     }
   }
